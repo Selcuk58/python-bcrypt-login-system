@@ -1,6 +1,7 @@
 import bcrypt
 import sqlite3
 import os
+import string
 
 def init_db():
     conn = sqlite3.connect("users.db")
@@ -55,11 +56,18 @@ def register():
      if len(passwort) < 8:
       print("Dein Passwort muss mindestens 8 Zeichen haben")
       continue
-      
+     
+     if not any(letter.isupper() for letter in passwort):
+      print("Dein Passwort muss mindestens einen Großbuchstaben enthalten")
+      continue
+     if not any(letter.isdigit() for letter in passwort):
+       print("Dein Passwort muss mindestens eine Zahl enthalten")
+       continue
+     if not any(letter in string.punctuation for letter in passwort):
+       print("Dein Passwort muss mindestens ein Sonderzeichen enthalten")
+       continue
      if passwort != passwort1:
         continue
-     
-    
      if passwort == passwort1:
       passwort_bytes = passwort.encode()
       salt = bcrypt.gensalt()
