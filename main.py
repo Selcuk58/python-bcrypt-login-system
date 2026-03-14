@@ -2,6 +2,10 @@ import bcrypt
 import sqlite3
 import os
 import string
+import time
+
+
+
 
 def init_db():
     conn = sqlite3.connect("users.db")
@@ -11,7 +15,9 @@ def init_db():
     CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         email TEXT UNIQUE,
-        password_hash BLOB
+        password_hash BLOB,
+        login_attempts INTEGER NOT NULL DEFAULT 0,
+        locked_until INTEGER NOT NULL DEFAULT 0
     )
     """)
 
@@ -25,6 +31,7 @@ def clear():
 
 def login():
     clear()
+    current_time = int(time.time())
     print("Login")
     eingabeEmail = input("Gebe bitte deine Email ein")
     eingabePW = input("Bitte geben Sie ihr Passwort ein")
@@ -37,13 +44,56 @@ def login():
     result = cursor.fetchone()
     if result is None:
      print("Emaíl Adresse oder Passwort stimmen nicht überein")
-     clear()
      return()
+    cursor.execute(
+    "SELECT locked_until FROM users WHERE email = ?",
+    (eingabeEmail,)
+    )
+    lock_tuple = cursor.fetchone()
+    lock_time1 = lock_tuple[0]
+    if lock_time1 > current_time:
+      print("Anmeldung nicht Möglich, versuchen Sie es später erneut")
+      return
+    if lock_time1 < current_time:
+      cursor.execute(
+      "UPDATE users SET login_attempts = 0, locked_until = 0 WHERE email = ?",
+      (eingabeEmail,)
+      )
+      conn.commit()
+       
     stored_hash = result[0]
     if bcrypt.checkpw(passwort_bytes, stored_hash):
       print("Login war Erfolgreich")
+      cursor.execute(
+       "UPDATE users SET login_attempts = 0 WHERE email = ?",
+       (eingabeEmail,)
+       )
+      conn.commit()
+
     else:
       print("Passwort war leider falsch")
+      cursor.execute(
+      "UPDATE users SET login_attempts = login_attempts + 1 WHERE email = ?",
+      (eingabeEmail,)
+      )
+      conn.commit()
+      cursor.execute(
+      "SELECT login_attempts FROM users WHERE email = ?",
+      (eingabeEmail,)
+      )
+      tuple = cursor.fetchone()
+      attempts = tuple[0]
+      lock_time = current_time + 600
+      if attempts > 5:
+        cursor.execute(
+        "UPDATE users SET locked_until = locked_until ? WHERE email = ?",
+        (lock_time,eingabeEmail) 
+        )
+        conn.commit()
+      else:
+        return()
+      
+
       login()
 
 
