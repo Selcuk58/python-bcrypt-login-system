@@ -73,6 +73,7 @@ def login():
         (eingabeEmail,)
         )
         conn.commit()
+        changePasswordPage(eingabeEmail,)
 
         break
 
@@ -103,7 +104,7 @@ def login():
 
             print("Zu viele Versuche, versuch es später erneut.")
             conn.close()
-            return
+            return eingabeEmail
 
 def register():
     clear()
@@ -147,6 +148,7 @@ def register():
     
      
 def menu():
+    
     print("1. Login")
     print("2. Register")
     print("3. Exit")
@@ -165,8 +167,50 @@ def menu():
     else:
      print("Ungültige Eingabe")
 
+def changePasswordPage(eingabeEmail,):
+   print("Herzlich Willkommen")
+   print("1.Passwort ändern") 
+   print("2.Ausloggen") 
+   choice = input("Wähle 1-2: ")
+   conn = sqlite3.connect("users.db")
+   cursor = conn.cursor()
+   cursor.execute(
+   "SELECT password_hash FROM users WHERE email = ?",
+   (eingabeEmail,)
+   )
+   stored_hash = cursor.fetchone()[0]
+   if choice == "1":
+    old_pw = input("Gib dein aktuelles Passwort ein: ")
+    if not bcrypt.checkpw(old_pw.encode(), stored_hash):
+     print("Passwort falsch")
+     changePasswordPage(eingabeEmail,)
+    else :
+     newPW1 = input("Gib dein neues Passwort ein : ")
+     newPW2 = input ("Bestätige das Passwort bitte: ")
+     if newPW1 == newPW2:
+      new_hash = bcrypt.hashpw(newPW1.encode(), bcrypt.gensalt())
+      cursor.execute(
+       "UPDATE users SET password_hash = ? WHERE email = ?",
+      (new_hash, eingabeEmail)
+      )
+      conn.commit()
+      print("Passwort wurde Erfolgreich geändert")
+      changePasswordPage(eingabeEmail,)
+   elif choice == "2":
+     userLogOutChoice = input("Bist du sicher du willst dich abmelden? (Y/N)").upper()
+     if userLogOutChoice == "Y":
+      menu()
+     elif userLogOutChoice == "N":
+      changePasswordPage(eingabeEmail,)
+     else:
+       print("Falsche Eingabe")
+       changePasswordPage(eingabeEmail,)
+   else:
+     print("Eingabe war falsch")
+     changePasswordPage( eingabeEmail,)
 
 
+     
 
 menu()
 
