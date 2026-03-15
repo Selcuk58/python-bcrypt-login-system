@@ -54,18 +54,21 @@ Passwords must meet the following requirements:
 
 Clone the repository:
 
-```bash
+``` bash
 git clone https://github.com/Selcuk58/python-bcrypt-login-system.git
-
-## Installation
+```
 
 Navigate to the project folder:
 
+``` bash
 cd python-bcrypt-login-system
+```
 
 Install the required dependency:
 
+``` bash
 pip install bcrypt
+```
 
 ---
 
@@ -73,9 +76,11 @@ pip install bcrypt
 
 Run the program:
 
+```bash
 python main.py
+```
 
-The program will automatically create the database file users.db if it does not exist.
+The program will automatically create the database file `users.db` if it does not exist.
 
 ---
 
