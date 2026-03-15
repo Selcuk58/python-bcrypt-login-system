@@ -33,7 +33,7 @@ def login():
     clear()
     current_time = int(time.time())
     print("Login")
-    eingabeEmail = input("Gebe bitte deine Email ein")
+    eingabeEmail = input("Gebe bitte deine Email ein: ")
     conn = sqlite3.connect("users.db")
     cursor = conn.cursor()
     cursor.execute(
@@ -73,7 +73,8 @@ def login():
         (eingabeEmail,)
         )
         conn.commit()
-        changePasswordPage(eingabeEmail,)
+        conn.close()
+        userMenu(eingabeEmail,)
 
         break
 
@@ -106,9 +107,23 @@ def login():
             conn.close()
             return eingabeEmail
 
+def emailValidation(email):
+  if " " in email:
+    print("Deine Email darf keine Leerzeichen enthalten")
+    return False
+  if email.count("@") != 1:
+    print ("Jede Email Adresse muss ein @ enthalten")
+    return False 
+  return True 
+
 def register():
     clear()
-    email = input("Geben Sie bitte eine gültige Email Adresse an:")
+    while True:
+        email = input("Geben Sie bitte eine gültige Email Adresse an: ")
+
+        if emailValidation(email):
+            break
+    
     while True:
      passwort = input("Bitte Geben Sie ein Passwort an:")
      passwort1 = input("Bitte bestätigen Sie das Password:")
@@ -167,7 +182,7 @@ def menu():
     else:
      print("Ungültige Eingabe")
 
-def changePasswordPage(eingabeEmail,):
+def userMenu(eingabeEmail):
    print("Herzlich Willkommen")
    print("1.Passwort ändern") 
    print("2.Ausloggen") 
@@ -183,7 +198,8 @@ def changePasswordPage(eingabeEmail,):
     old_pw = input("Gib dein aktuelles Passwort ein: ")
     if not bcrypt.checkpw(old_pw.encode(), stored_hash):
      print("Passwort falsch")
-     changePasswordPage(eingabeEmail,)
+     conn.close()
+     userMenu(eingabeEmail)
     else :
      newPW1 = input("Gib dein neues Passwort ein : ")
      newPW2 = input ("Bestätige das Passwort bitte: ")
@@ -194,20 +210,25 @@ def changePasswordPage(eingabeEmail,):
       (new_hash, eingabeEmail)
       )
       conn.commit()
+      conn.close()
       print("Passwort wurde Erfolgreich geändert")
-      changePasswordPage(eingabeEmail,)
+      userMenu(eingabeEmail)
+     else:
+       print("Passwörter stimmen nicht überein")
+       userMenu(eingabeEmail)
    elif choice == "2":
      userLogOutChoice = input("Bist du sicher du willst dich abmelden? (Y/N)").upper()
      if userLogOutChoice == "Y":
+      conn.close()
       menu()
      elif userLogOutChoice == "N":
-      changePasswordPage(eingabeEmail,)
+      userMenu(eingabeEmail)
      else:
        print("Falsche Eingabe")
-       changePasswordPage(eingabeEmail,)
+       userMenu(eingabeEmail)
    else:
      print("Eingabe war falsch")
-     changePasswordPage( eingabeEmail,)
+     userMenu( eingabeEmail)
 
 
      
